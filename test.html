@@ -1,0 +1,142 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor with Monaco</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <style>
+        #container {
+            width: 800px;
+            height: 400px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container"></div>
+
+    <script>
+      require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+      require(['vs/editor/editor.main'], function () {
+        monaco.editor.create(document.getElementById('container'), {
+          value: '// Write your code here\nfunction helloWorld() {\n  console.log("Hello, world!");\n}',
+          language: 'javascript',
+          theme: 'vs-dark'
+        });
+      });
+    </script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Editor with Language Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/dracula.min.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.0.0/mode/kotlin/kotlin.min.js"></script>
+
+    <style>
+      .CodeMirror {
+        height: auto;
+        font-size: 20px;
+        font-family:sans-serif;
+        line-height: 2;
+      }
+      #color-display {
+        margin: 100px auto;
+        width: 100px;
+        height: 100px;
+        background-color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="languages.js"></script>
+    <textarea id="code-editor">// Write your code here</textarea>
+
+    <div id="color-display"></div>
+
+    <script>
+      const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "dracula",
+      });
+
+      // Function to detect language using highlight.js
+      function detectLanguage(code) {
+        // Regex patterns to detect TypeScript and Angular-like syntax
+        const angularPattern = /@Component|@Injectable|class[\s\S]+{/i; // Detect Angular components or classes
+        const htmlPattern = /<\/?[a-z][\s\S]*>/i; // Detect HTML tags
+
+        // If Angular or TypeScript patterns are detected, prioritize TypeScript
+        if (angularPattern.test(code)) {
+          return "typescript"; // Force TypeScript for Angular components
+        }
+        // If HTML is detected but no TypeScript/Angular patterns, consider it HTML
+        else if (htmlPattern.test(code)) {
+          return "html"; // Detect HTML for plain HTML templates
+        }
+        // Otherwise, fall back to highlight.js automatic detection
+        else {
+          const result = hljs.highlightAuto(code);
+          return result.language; // Automatic detection for other languages
+        }
+      }
+
+      // Example usage: detect language on code change
+      editor.on("change", function () {
+        const code = editor.getValue();
+        const detectedLang = detectLanguage(code);
+        console.log("Detected Language:", detectedLang);
+        const color = getLanguageColor(detectedLang);
+        console.log(color);
+        document.getElementById("color-display").style.backgroundColor = color;
+        editor.setOption("mode", detectedLang);
+        // You can change the mode of the editor based on detected language
+        // if (detectedLang === "javascript") {
+        //   editor.setOption("mode", "javascript");
+        // } else if (detectedLang === "python") {
+        //   editor.setOption("mode", "python");
+        // }
+      });
+
+      function getLanguageColor(language) {
+        // Convertir le langage en minuscules pour une comparaison insensible à la casse
+        const lowercaseLanguage = language.toLowerCase();
+
+        // Rechercher le langage dans l'objet languageColors
+        for (const key in languageColors) {
+          if (key.toLowerCase() === lowercaseLanguage) {
+            console.log("Langage trouvé:", key);
+            return languageColors[key].color || "#000000";
+          }
+        }
+
+        console.log("Langage non trouvé:", language);
+        return "#000000"; // Couleur par défaut si le langage n'est pas trouvé
+      }
+
+      const language = "kotlin";
+      const color = getLanguageColor(language);
+      console.log(color);
+      document.getElementById("color-display").style.backgroundColor = color;
+    </script>
+  </body>
+</html>
